@@ -45,7 +45,6 @@ class Consumer(object):
         self.exchange_type = kwargs.get("exchange_type", self.exchange_type)
         self.channel = self.build_channel()
 
-
     def build_channel(self):
         channel = self.connection.connection.channel()
         if self.queue:
@@ -77,7 +76,7 @@ class Consumer(object):
         if message:
             self.receive_callback(message)
             self.channel.basic_ack(message.delivery_tag)
-   
+
     def wait(self):
         if not self.channel.connection:
             self.channel = self.build_channel()
@@ -86,13 +85,13 @@ class Consumer(object):
                 callback=self.receive_callback,
                 consumer_tag=self.__class__.__name__)
         yield self.channel.wait()
-       
+
     def __del__(self):
         if self.channel_open:
             self.channel.basic_cancel(self.__class__.__name__)
         if getattr(self, "channel") and self.channel.is_open:
             self.channel.close()
-    
+
 
 class Publisher(object):
     exchange = ""
