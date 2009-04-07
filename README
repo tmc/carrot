@@ -37,6 +37,7 @@ Installation
     To install using ``pip``:
 
 ::
+
         $ pip install carrot
 
     To install using ``easy_install``
@@ -45,7 +46,9 @@ Installation
 
     If you have downloaded a source tarball you can install it
     in the following way:
+
 ::
+
         $ python setup.py build
         # python setup.py install # as root
 
@@ -85,6 +88,7 @@ Example
     to your ``settings.py``:
 
 ::
+
         AMQP_SERVER = "localhost"
         AMQP_PORT = 5678
         AMQP_USER = "my_rabbitmq_user"
@@ -94,17 +98,17 @@ Example
     First we have to set up the connection instance, and map it to the
     publishers and consumers:
 
-        >>> from carrot.connection import DjangoAMQPConnection
-        >>> po_publisher = PostOfficePublisher(connection=DjangoAMQPConnection)
-        >>> po_consumer = PostOfficeConsumer(connection=DjangoAMQPConnection)
+        >>> from carrot.connection import AMQPConnection
+        >>> po_publisher = PostOfficePublisher(connection=AMQPConnection)
+        >>> po_consumer = PostOfficeConsumer(connection=AMQPConnection)
 
 
     Then, finally, we can send and receive some messages:
 
         >>> po_publisher.send({"My message": ["foo", "bar", "baz"]})
-        >>> po_consumer().next()
-        Receieved: {"My message": ["foo", "bar", "baz"]}
-        
+        >>> po_publisher.close()
+        >>> po_consumer.next()
+        Received: {"My message": ["foo", "bar", "baz"]} from channel #1
 
 .. _`JSON`: http://www.json.org/
 
