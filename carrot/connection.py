@@ -1,14 +1,10 @@
 from amqplib import client_0_8 as amqp
 
 
-class AMQPConnection(object):
+class BaseAMQPConnection(object):
     virtual_host = "/"
     port = 5672
     insist = False
-
-    @property
-    def host(self):
-        return ":".join([self.hostname, str(self.port)])
 
     def __init__(self, hostname, userid, password,
             virtual_host=None, port=None, **kwargs):
@@ -35,20 +31,62 @@ class AMQPConnection(object):
     def __del__(self):
         self.close()
 
+    @property
+    def host(self):
+        return ":".join([self.hostname, str(self.port)])
 
-class DjangoAMQPConnection(AMQPConnection):
-    
+
+class AMQPConnection(BaseAMQPConnection):
+
     def __init__(self, *args, **kwargs):
-        from django.conf import settings
-        kwargs["hostname"] = kwargs.get("hostname",
-                getattr(settings, "AMQP_SERVER"))
-        kwargs["userid"] = kwargs.get("userid",
-                getattr(settings, "AMQP_USER"))
-        kwargs["password"] = kwargs.get("password",
-                getattr(settings, "AMQP_PASSWORD"))
-        kwargs["virtual_host"] = kwargs.get("virtual_host",
-                getattr(settings, "AMQP_VHOST"))
-        kwargs["port"] = kwargs.get("port",
-                getattr(settings, "AMQP_PORT", self.port))
+        kwargs = SettingsProvider(kwargs).get_settings()
+        super(AMQPConnection, self).__init__(*args, **kwargs)
 
-        super(DjangoAMQPConnection, self).__init__(*args, **kwargs)
+
+class SettingsProvider(object):
+    """
+    Provides conditional lookup of settings from passed arguments,
+    django settings or the current environment.
+
+    Falls from passed arguments to django (if present) to environment vars.
+    """
+
+    setting_env_map = {
+        'hostname': 'AMQP_SERVER',
+        'userid': 'AMQP_USER',
+        'password': 'AMQP_PASSWORD',
+        'virtual_host': 'AMQP_VHOST',
+        'port': 'AMQP_PORT',
+    }
+
+    def __init__(self, provided_settings):
+        self.provided_settings = provided_settings or {}
+        self.lookups = (
+            self._django_lookup,
+            self._env_lookup,
+        )
+
+    def _django_lookup(self, name, default):
+        try:
+            from django.conf import settings
+            return getattr(settings, name, default)
+        except:
+            return default
+
+    def _env_lookup(self, name, default):
+        from os import environ
+        return environ.get(name, default)
+
+    def lookup(self, name, default=None):
+        result = default
+        for lookup_method in self.lookups:
+            if result == default:
+                result = lookup_method(name, default)
+        return result
+
+    def get_settings(self):
+        settings = {}
+        for name, env_var in self.setting_env_map.items():
+            settings[name] = self.lookup(env_var)
+        settings.update(self.provided_settings)
+        return settings
