@@ -6,27 +6,25 @@ carrot
     Ask Solem (askh@opera.com)
 :Version: 0.1.0
 
-Simple `RabbitMQ`_/`ZeroMQ`_ (`AMQP`_) messaging queue with optional support
-for `Django`_.
+Simple amqplib wrapper to provide a nicer `AMQP`_ interface.
 
 *Note* This software is not finished. And is likely to change drastically
 in the near future.
 
-.. _`RabbitMQ`: http://www.rabbitmq.com/
-.. _`ZeroMQ`: http://www.zeromq.org/
 .. _`AMQP`: http://amqp.org
-.. _`Django`: http://www.djangoproject.com/
 
 Introduction
 ------------
 
-`carrot` is a messaging queue framework with optional support for `Django_`,
-built on top of `py-amqplib`_. Before you start playing with ``carrot``, you
-should read the excellent article on RabbitMQ under python by Jason: `Rabbits
-and warrens`_.
+`carrot` is a messaging queue framework built on top of `py-amqplib`_. It
+encapsulates a simple workflow and attempts to fall back to sane defaults.
+`carrot` supports loading settings from the local environment or `Django`_
+configuration (there is no hard dependancy on `Django`_). `carrot`_ was
+created through inspiration obtained through the `Rabbits and warrens`_
+article below.
 
-.. _`Rabbits and warrens`: http://blogs.digitar.com/jjww/2009/01/rabbits-and-warrens/
 .. _`py-amqplib`: http://barryp.org/software/py-amqplib/
+.. _`Rabbits and warrens`: http://blogs.digitar.com/jjww/2009/01/rabbits-and-warrens/
 
 Installation
 -------------
@@ -90,10 +88,10 @@ Example
 ::
 
         AMQP_SERVER = "localhost"
-        AMQP_PORT = 5678
-        AMQP_USER = "my_rabbitmq_user"
-        AMQP_PASSWORD = "my_rabbitmq_user_password"
-        AMQP_VHOST = "virtual_host_to_use"
+        AMQP_PORT = 5672
+        AMQP_USER = "guest"
+        AMQP_PASSWORD = "guest"
+        AMQP_VHOST = "/"
 
     First we have to set up the connection instance, and map it to the
     publishers and consumers:
