@@ -51,7 +51,7 @@ class Consumer(object):
                                   exclusive=self.exclusive,
                                   auto_delete=self.auto_delete)
         if self.exchange:
-            channel.exchange_declare(exchange=self.exchange,
+            channel_open.exchange_declare(exchange=self.exchange,
                                      type=self.exchange_type,
                                      durable=self.durable,
                                      auto_delete=self.auto_delete)
@@ -80,15 +80,14 @@ class Consumer(object):
         if not self.channel.connection:
             self.channel = self.build_channel()
         self.channel_open = True
-        channel.basic_consume(queue=self.queue, no_ack=True,
+        self.channel.basic_consume(queue=self.queue, no_ack=True,
                 callback=self.receive_callback,
                 consumer_tag=self.__class__.__name__)
         yield self.channel.wait()
 
     def close(self):
-        if self.channel_open:
-            self.channel.basic_cancel(self.__class__.__name__)
         if getattr(self, "channel") and self.channel.is_open:
+            self.channel.basic_cancel(self.__class__.__name__)
             self.channel.close()
 
     def __del__(self):
